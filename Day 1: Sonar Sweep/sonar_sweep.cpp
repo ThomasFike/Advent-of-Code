@@ -7,14 +7,14 @@
 #include <iostream>
 #include <limits>
 
-[[nodiscard]] static int get_int_from_istream(std::istream& input);
+[[nodiscard]] static int get_string_from_istream(std::istream& input);
 
 int main() {
   std::ifstream fin("input.txt");
   int number_of_times_increased = 0;
   int pervious = std::numeric_limits<int>::min();
   while (fin.good()) {
-    const int current = get_int_from_istream(fin);
+    const int current = get_string_from_istream(fin);
     if (current > pervious) {
       if (pervious != std::numeric_limits<int>::min()) {
         number_of_times_increased++;
@@ -27,7 +27,7 @@ int main() {
   fin.close();
 }
 
-[[nodiscard]] static int get_int_from_istream(std::istream& input) {
+[[nodiscard]] static int get_string_from_istream(std::istream& input) {
   int temp;
   input >> temp;
   return temp;

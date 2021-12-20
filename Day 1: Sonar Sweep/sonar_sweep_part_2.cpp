@@ -10,14 +10,14 @@
 
 static constexpr int minimum_vector_length = 2000;
 
-[[nodiscard]] static int get_int_from_istream(std::istream& input);
+[[nodiscard]] static int get_string_from_istream(std::istream& input);
 
 int main() {
   std::ifstream fin("input.txt");
   std::vector<int> values;
   values.reserve(minimum_vector_length);
   while (fin.good()) {
-    values.push_back(get_int_from_istream(fin));
+    values.push_back(get_string_from_istream(fin));
   }
   std::vector<int> averages;
   averages.reserve(3 * (values.size() - 4));
@@ -42,7 +42,7 @@ int main() {
   std::cout << "Increased: " << number_of_time_increased << std::endl;
 }
 
-[[nodiscard]] static int get_int_from_istream(std::istream& input) {
+[[nodiscard]] static int get_string_from_istream(std::istream& input) {
   int temp;
   input >> temp;
   return temp;
