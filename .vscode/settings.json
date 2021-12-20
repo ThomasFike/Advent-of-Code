@@ -46,6 +46,6 @@
     "typeinfo": "cpp"
   },
   "code-runner.executorMap": {
-    "cpp": "cd $dir && g++ $fileName -o a.out -Wall -Wextra -Wpedantic && $dira.out"
+    "cpp": "cd $dir && g++ $fileName -o a.out -Wall -Wextra -Wpedantic -std=c++17 && $dira.out"
   }
 }
