@@ -41,6 +41,9 @@ struct Line {
   std::vector<Point> line_points;
   bool is_straight_line = true;
   Line(Point start, Point end);
+
+ private:
+  std::vector<Point> generate_diagonal_points(Point start, Point end);
 };
 
 Line::Line(Point start, Point end) : start(start), end(end) {
@@ -67,9 +70,38 @@ Line::Line(Point start, Point end) : start(start), end(end) {
       }
     }
   } else {
-    // std::cout << "Not a straight line" << std::endl;
+    line_points = generate_diagonal_points(start, end);
     is_straight_line = false;
   }
+}
+
+std::vector<Point> Line::generate_diagonal_points(Point start, Point end) {
+  std::vector<Point> points;
+  points.reserve(abs(start.y - end.y) + 2);
+
+  Point adjusted_start;
+  Point adjusted_end;
+  adjusted_start.x = std::min(start.x, end.x);
+  if (adjusted_start.x == start.x) {
+    adjusted_start.y = start.y;
+    adjusted_end = end;
+  } else {
+    adjusted_start.y = end.y;
+    adjusted_end = start;
+  }
+
+  if (adjusted_start.y < adjusted_end.y) {
+    for (int x = adjusted_start.x, y = adjusted_start.y;
+         (x <= adjusted_end.x) && (y <= adjusted_end.y); x++, y++) {
+      points.emplace_back(x, y);
+    }
+  } else {
+    for (int x = adjusted_start.x, y = adjusted_start.y;
+         (x <= adjusted_end.x) && (y >= adjusted_end.y); x++, y--) {
+      points.emplace_back(x, y);
+    }
+  }
+  return points;
 }
 
 template <typename T>
@@ -102,10 +134,8 @@ int main() {
       return 1;
     }
     const Line line(start, end);
-    if (line.is_straight_line) {
-      lines.push_back(line);
-      // print_vector(lines.back().line_points);
-    }
+    lines.push_back(line);
+    // print_vector(lines.back().line_points);
   }
 
   std::array<std::array<int, GRID_SIZE>, GRID_SIZE> grid_of_lines;
