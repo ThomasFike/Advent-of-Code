@@ -1,9 +1,9 @@
-add_executable(test_folder test.cpp)
+add_executable(template test.cpp)
 target_include_directories(
-  test_folder
+  template
   PRIVATE ../common
 )
 target_link_libraries(
-  test_folder
+  template
   PUBLIC project_options project_warnings common
   )
