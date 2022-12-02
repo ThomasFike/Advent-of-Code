@@ -56,4 +56,4 @@ dynamic_project_options(
 
 add_subdirectory(common)
 
-add_subdirectory(test_folder)
+add_subdirectory(Day1)
