@@ -57,3 +57,4 @@ dynamic_project_options(
 add_subdirectory(common)
 
 add_subdirectory(Day1)
+add_subdirectory(Day2)
