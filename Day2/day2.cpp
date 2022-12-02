@@ -14,6 +14,11 @@ const std::map<char, RPS> char_to_rps = {
 const std::map<DISPOSITION, int> score_from_result = {
     {DISPOSITION::WON, 6}, {DISPOSITION::LOST, 0}, {DISPOSITION::DRAW, 3}};
 
+const std::map<char, DISPOSITION> expected_result_map = {
+    {'X', DISPOSITION::LOST},
+    {'Y', DISPOSITION::DRAW},
+    {'Z', DISPOSITION::WON}};
+
 static DISPOSITION result_of_match(const std::pair<RPS, RPS>& match);
 
 std::ostream& operator<<(std::ostream& stream, const RPS& rps) {
@@ -52,10 +57,21 @@ int main() {
   while (in_file.good()) {
     std::string line;
     std::getline(in_file, line);
+    const auto expected_result = expected_result_map.at(line[2]);
+
     std::pair<RPS, RPS> match(char_to_rps.at(line[2]), char_to_rps.at(line[0]));
-    auto result = result_of_match(match);
-    std::cout << match.first << " vs " << match.second << " resulted in "
-              << result << std::endl;
+    const std::array<RPS, 3> rps_options = {RPS::ROCK, RPS::PAPER,
+                                            RPS::SCISSORS};
+    for (const auto& rps : rps_options) {
+      match.first = rps;
+      if (expected_result == result_of_match(match)) {
+        break;
+      }
+    }
+
+    const auto result = result_of_match(match);
+    // std::cout << match.first << " vs " << match.second << " resulted in "
+    //           << result << std::endl;
 
     total_score += score_from_result.at(result);
     total_score += static_cast<int>(match.first);
