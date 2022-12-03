@@ -14,27 +14,30 @@ int main() {
   }
   int total = 0;
   while (in.good()) {
-    std::string line;
-    std::getline(in, line);
-    PACKS packs;
-    std::copy(line.begin(), line.begin() + static_cast<int>(line.length() / 2),
-              std::back_inserter(packs.first));
-    std::copy(line.begin() + static_cast<int>(line.length() / 2), line.end(),
-              std::back_inserter(packs.second));
+    std::array<std::vector<char>, 3> lines;
+    std::generate(lines.begin(), lines.end(), [&]() {
+      std::string line;
+      std::vector<char> chars;
+      std::getline(in, line);
+      std::copy(line.begin(), line.end(), std::back_inserter(chars));
+      return chars;
+    });
     auto remove_duplicates = [](std::vector<char>& list) {
       std::sort(list.begin(), list.end());
       list.erase(std::unique(list.begin(), list.end()), list.end());
     };
-    remove_duplicates(packs.first);
-    remove_duplicates(packs.second);
-    std::vector<char> matches;
-    std::set_intersection(packs.first.begin(), packs.first.end(),
-                          packs.second.begin(), packs.second.end(),
-                          std::back_inserter(matches));
-    if (matches.size() == 0) {
+    std::for_each(lines.begin(), lines.end(), remove_duplicates);
+    std::vector<char> first_matches;
+    std::set_intersection(lines[0].begin(), lines[0].end(), lines[1].begin(),
+                          lines[1].end(), std::back_inserter(first_matches));
+    std::vector<char> second_matches;
+    std::set_intersection(first_matches.begin(), first_matches.end(),
+                          lines[2].begin(), lines[2].end(),
+                          std::back_inserter(second_matches));
+    if (second_matches.size() == 0) {
       std::cout << "No Match";
     } else {
-      const auto priority = get_priority(matches[0]);
+      const auto priority = get_priority(second_matches[0]);
       std::cout << priority << std::endl;
       total += priority;
     }
