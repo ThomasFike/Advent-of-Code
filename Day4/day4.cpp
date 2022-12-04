@@ -13,7 +13,7 @@ static bool is_enclosed(const Assignment& pair);
 static bool is_overlap(const Assignment& pair);
 
 int main() {
-  std::ifstream file("part1.txt");
+  std::ifstream file("small.txt");
   auto enclosed_total = 0;
   auto overlap_total = 0;
   while (file.good()) {
@@ -25,8 +25,8 @@ int main() {
       overlap_total++;
     }
   }
-  std::cout << "Found " << enclosed_total << " to be enclosed" << std::endl;
-  std::cout << "Found " << overlap_total << " to be overlapping" << std::endl;
+  fmt::print("Found {} to be enclosed\n", enclosed_total);
+  fmt::print("Found {} to be overlapping\n", overlap_total);
 }
 
 static Assignment get_pair(std::ifstream& file) {

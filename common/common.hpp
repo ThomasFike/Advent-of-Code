@@ -17,6 +17,9 @@
 /// Counting
 #include <algorithm>
 #include <numeric>
+/// FMT
+#include <fmt/core.h>
+#include <fmt/ranges.h>
 
 /**
  * @brief Prints out the contents of a vector as a comma seperated list
