@@ -54,4 +54,11 @@ std::vector<T> read_comma_separated_file(std::istream& input) {
   }
   return values;
 }
+
+template <typename T1, typename T2>
+std::ostream& operator<<(std::ostream& out, std::pair<T1, T2> pair_obj) {
+  out << '(' << pair_obj.first << ',' << pair_obj.second << ')';
+  return out;
+}
+
 #endif
