@@ -31,8 +31,7 @@ int main() {
 
 static Assignment get_pair(std::ifstream& file) {
   std::regex pair_regex(R"_((\d+)-(\d+),(\d+)-(\d+))_");
-  std::string line;
-  std::getline(file, line);
+  const auto line = get_line(file);
   std::smatch matches;
   Assignment pair;
   if (std::regex_search(line, matches, pair_regex) && matches.size() == 5) {

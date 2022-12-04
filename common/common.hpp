@@ -61,4 +61,7 @@ std::ostream& operator<<(std::ostream& out, std::pair<T1, T2> pair_obj) {
   return out;
 }
 
+// Functions in common.cpp
+std::string get_line(std::ifstream& in_file);
+
 #endif
