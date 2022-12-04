@@ -10,17 +10,23 @@ using Assignment = std::pair<Range, Range>;
 
 static Assignment get_pair(std::ifstream& file);
 static bool is_enclosed(const Assignment& pair);
+static bool is_overlap(const Assignment& pair);
 
 int main() {
   std::ifstream file("part1.txt");
-  auto total = 0;
+  auto enclosed_total = 0;
+  auto overlap_total = 0;
   while (file.good()) {
     const auto assignment = get_pair(file);
     if (is_enclosed(assignment)) {
-      total++;
+      enclosed_total++;
+    }
+    if (is_overlap(assignment)) {
+      overlap_total++;
     }
   }
-  std::cout << "Found " << total << " to be enclosed" << std::endl;
+  std::cout << "Found " << enclosed_total << " to be enclosed" << std::endl;
+  std::cout << "Found " << overlap_total << " to be overlapping" << std::endl;
 }
 
 static Assignment get_pair(std::ifstream& file) {
@@ -49,6 +55,21 @@ static bool is_enclosed(const Assignment& pair) {
   }
   // Check for second in first
   if (first.first <= second.first && second.second <= first.second) {
+    return true;
+  }
+  return false;
+}
+
+static bool is_overlap(const Assignment& pair) {
+  const auto& first = pair.first;
+  const auto& second = pair.second;
+  if (first.first >= second.first && first.first <= second.second) {
+    return true;
+  } else if (first.second >= second.first && first.second <= second.second) {
+    return true;
+  } else if (second.first >= first.first && second.first <= first.second) {
+    return true;
+  } else if (second.second >= first.first && second.second <= first.second) {
     return true;
   }
   return false;
