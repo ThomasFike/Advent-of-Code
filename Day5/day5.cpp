@@ -31,11 +31,17 @@ int main() {
     auto instruct = readInstruction(inFile).value();
     auto& from = stacks[instruct.from - 1];
     auto& to = stacks[instruct.to - 1];
+    std::stack<char> temp;
     while (instruct.count && from.size()) {
       const auto item = from.top();
       from.pop();
-      to.push(item);
+      temp.push(item);
       instruct.count--;
+    }
+    while (!temp.empty()) {
+      const auto item = temp.top();
+      temp.pop();
+      to.push(item);
     }
   } while (inFile.good());
   std::string outString;
