@@ -38,7 +38,7 @@ class Viewer {
 
 int main() {
   std::ifstream inFile("part1.txt");
-  Viewer<4> viewer;
+  Viewer<14> viewer;
   int counter = 0;
   while (inFile.good()) {
     char temp;
