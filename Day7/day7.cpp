@@ -12,8 +12,9 @@ struct File {
   size_t size = 0;
 };
 
-size_t addFiles(size_t current, const File& file) {
-  return current + file.size;
+template <typename T>
+size_t addFiles(size_t current, const T& item) {
+  return current + item.size;
 }
 
 struct Directory {
@@ -26,7 +27,7 @@ struct Directory {
   bool isBottom(void) const { return dirs.empty(); }
   void getSizeOfFiles(void) {
     size = static_cast<size_t>(
-        std::accumulate(files.cbegin(), files.cend(), 0, addFiles));
+        std::accumulate(files.cbegin(), files.cend(), 0, addFiles<File>));
   }
   std::string getPath(void) {
     auto ptr = this;
@@ -120,15 +121,29 @@ int main() {
   }
   for (auto iter = organized.rbegin(); iter != organized.rend(); iter++) {
     for (auto* dir : *iter) {
-      dir->parent->size += dir->size;
+      if (dir->parent != nullptr) {
+        dir->parent->size += dir->size;
+      }
     }
   }
-  unsigned long long total = 0;
-  for (auto* dir : dirs) {
-    if (dir->size <= 100000) {
-      total += dir->size;
+  topDir.getSizeOfFiles();
+  topDir.size += static_cast<size_t>(std::accumulate(
+      topDir.dirs.cbegin(), topDir.dirs.cend(), 0, addFiles<Directory>));
+  dirs.emplace_back(&topDir);
+
+  constexpr size_t totalSize = 70000000;
+  constexpr size_t neededTotalSize = 30000000;
+  const auto usedSize = topDir.size;
+  const size_t neededSize = neededTotalSize - (totalSize - usedSize);
+  fmt::print("{} Used, Need {}\n", usedSize, neededSize);
+  std::sort(dirs.begin(), dirs.end(), [](Directory* one, Directory* two) {
+    return one->size < two->size;
+  });
+  for (size_t i = 0; i < dirs.size() - 1; i++) {
+    if (dirs[i]->size < neededSize && dirs[i + 1]->size > neededSize) {
+      fmt::print("Trying {}<MAX<{}\n", dirs[i]->size, dirs[i + 1]->size);
+      fmt::print("Answer: {}\n", dirs[i]->size);
+      return 0;
     }
-    fmt::print("Dir {} of size {}\n", dir->getPath(), dir->size);
   }
-  fmt::print("Total {}\n", total);
 }
