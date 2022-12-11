@@ -27,15 +27,17 @@ class CPU {
   long X = 1;
   long score = 0;
   std::list<std::pair<Instruction, AddInstruct>> pending;
-  void handleScore(void);
+  // void handleScore(void);
+  void render(void) const;
 };
 
 void CPU::doCycle(void) {
   if (pending.empty()) {
     return;
   }
+  // handleScore();
+  render();
   cycle++;
-  handleScore();
   auto& [inst, addInfo] = pending.front();
   switch (inst) {
     case Instruction::Add:
@@ -61,12 +63,25 @@ void CPU::addOp(const Instruction op, const long val) {
   pending.push_back({op, instruct});
 }
 
-void CPU::handleScore(void) {
-  if (cycle >= 20 && cycle <= 220 && ((cycle - 20) % 40 == 0)) {
-    const auto newScore = cycle * X;
-    score += newScore;
-    // fmt::print("Adding Score ({} x {}) = {}\nProduced: {}\n", cycle, X,
-    //            newScore, score);
+// void CPU::handleScore(void) {
+//   if (cycle >= 20 && cycle <= 220 && ((cycle - 20) % 40 == 0)) {
+//     const auto newScore = cycle * X;
+//     score += newScore;
+//     // fmt::print("Adding Score ({} x {}) = {}\nProduced: {}\n", cycle, X,
+//     //            newScore, score);
+//   }
+// }
+
+void CPU::render(void) const {
+  if (cycle % 40 == 0 && cycle != 0) {
+    putchar('\n');
+  }
+  auto spriteMiddle = X % 40;
+  auto drawingSpot = cycle % 40;
+  if (spriteMiddle - 1 <= drawingSpot && drawingSpot <= spriteMiddle + 1) {
+    putchar('#');
+  } else {
+    putchar('.');
   }
 }
 
@@ -97,5 +112,5 @@ int main() {
   while (myCpu.hasWork()) {
     myCpu.doCycle();
   }
-  fmt::print("Score: {}\n", myCpu.getScore());
+  // fmt::print("Score: {}\n", myCpu.getScore());
 }
