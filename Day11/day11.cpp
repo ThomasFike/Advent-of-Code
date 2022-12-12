@@ -28,19 +28,20 @@ class Monkey {
   friend void printMonkey(const Monkey& monkey);
   void updateWorry(void);
   auto getInspectedCount(void) const { return inspectedCount; }
-  size_t passTo(int val) const {
-    if (val % divisor == 0) {
+  template <typename T>
+  size_t passTo(T val) const {
+    if (val % static_cast<T>(divisor) == 0) {
       return static_cast<size_t>(throwTo.first);
     } else {
       return static_cast<size_t>(throwTo.second);
     }
   }
-  std::vector<int> items;
+  std::vector<unsigned long long> items;
+  int divisor;
 
  private:
   std::optional<Operation> op;
   std::pair<int, int> throwTo;
-  int divisor;
   int inspectedCount = 0;
 };
 
@@ -62,42 +63,48 @@ void printMonkey(const Monkey& monkey) {
   fmt::print("Divisor: {}, Throw To: {}\n", monkey.divisor, monkey.throwTo);
 }
 
-void doRound(std::vector<Monkey>& monkeys);
+void doRound(std::vector<Monkey>& monkeys, int divisor);
 int main() {
   std::ifstream inFile("part1.txt");
   std::vector<Monkey> monkeys;
   while (inFile.good()) {
     monkeys.emplace_back(Monkey(inFile));
   }
-  for (int i = 1; i <= 20; i++) {
-    fmt::print("Round {}\n", i);
-    doRound(monkeys);
+  const auto commonDivisor =
+      std::accumulate(monkeys.begin(), monkeys.end(), 1,
+                      [](const auto& init, const auto& monkey) {
+                        return init * monkey.divisor;
+                      });
+  for (int i = 1; i <= 10000; i++) {
+    // fmt::print("Round {}\n", i);
+    doRound(monkeys, commonDivisor);
   }
   for (size_t i = 0; i < monkeys.size(); i++) {
     fmt::print("Monkey {} inspected {} items\n", i,
                monkeys[i].getInspectedCount());
   }
-  std::vector<int> counts;
+  std::vector<long> counts;
   std::transform(monkeys.cbegin(), monkeys.cend(), std::back_inserter(counts),
                  [](const auto& monkey) { return monkey.getInspectedCount(); });
-  std::sort(counts.begin(), counts.end(), std::greater<int>());
+  std::sort(counts.begin(), counts.end(), std::greater<long>());
   const auto level = counts[0] * counts[1];
   fmt::print("Level of Monkey Business: {}\n", level);
 }
 
-void doRound(std::vector<Monkey>& monkeys) {
+void doRound(std::vector<Monkey>& monkeys, int divisor) {
   for (size_t i = 0; i < monkeys.size(); i++) {
     monkeys[i].updateWorry();
     for (size_t j = 0; j < monkeys[i].items.size(); j++) {
+      monkeys[i].items[j] %= static_cast<unsigned long long>(divisor);
       const auto item = monkeys[i].items[j];
       const auto passTo = monkeys[i].passTo(item);
       monkeys[passTo].items.emplace_back(item);
     }
     monkeys[i].items.clear();
   }
-  for (size_t i = 0; i < monkeys.size(); i++) {
-    fmt::print("Monkey {} has: {}\n", i, monkeys[i].items);
-  }
+  // for (size_t i = 0; i < monkeys.size(); i++) {
+  //   fmt::print("Monkey {} has: {}\n", i, monkeys[i].items);
+  // }
 }
 
 Operation::Operation(const std::string& line) {
@@ -124,11 +131,11 @@ template <typename T>
 T Operation::doOp(const T initVal) const {
   switch (op) {
     case Op::AddVal:
-      return initVal + val;
+      return initVal + static_cast<T>(val);
     case Op::MultSelf:
       return initVal * initVal;
     case Op::MultVal:
-      return initVal * val;
+      return initVal * static_cast<T>(val);
   }
   return 0;
 }
@@ -148,7 +155,7 @@ Monkey::Monkey(std::ifstream& in) {
   while (std::regex_search(iter, line.cend(), match, numberMatch)) {
     iter = match.suffix().first;
     if (!match[1].str().empty()) {
-      items.emplace_back(std::stoi(match[1]));
+      items.emplace_back(std::stoull(match[1]));
     }
   }
 
@@ -170,9 +177,9 @@ Monkey::Monkey(std::ifstream& in) {
 }
 
 void Monkey::updateWorry(void) {
-  auto update = [&](int& item) {
+  auto update = [&](auto& item) {
     const auto opComplete = op.value().doOp(item);
-    item = static_cast<int>(static_cast<double>(opComplete) / 3.0);
+    item = opComplete;
     inspectedCount++;
   };
   std::for_each(items.begin(), items.end(), update);
