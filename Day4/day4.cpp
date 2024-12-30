@@ -3,7 +3,6 @@
  */
 
 #include <algorithm>
-// #include <expected>
 #include <fstream>
 #include <iostream>
 #include <numeric>
@@ -27,48 +26,34 @@ int main() {
     std::getline(inputFile, puzzle.back());
   }
 
-  const auto findMatches = [&](const Posn startPosn,
-                               const char searchChar) -> std::vector<Posn> {
-    const auto initalRow = startPosn.row > 0 ? startPosn.row - 1 : 0;
-    const auto initialCol = startPosn.col > 0 ? startPosn.col - 1 : 0;
-
-    std::vector<Posn> positions;
-    for (size_t row = initalRow;
-         row <= startPosn.row + 1 && row < puzzle.size(); row++) {
-      for (size_t col = initialCol;
-           col <= startPosn.col + 1 && col < puzzle[row].size(); col++) {
-        // std::cout << "Checking: " << row << "," << col << std::endl;
-        if (puzzle[row][col] == searchChar) {
-          positions.emplace_back(row, col);
-        }
-      }
-    }
-    return positions;
-  };
-
   int count = 0;
-  for (size_t xRow = 0; xRow < puzzle.size(); xRow++) {
-    for (size_t xCol = 0; xCol < puzzle[xRow].size(); xCol++) {
-      if (puzzle[xRow][xCol] != 'X') {
+  for (size_t aRow = 1; aRow < puzzle.size() - 1; aRow++) {
+    for (size_t aCol = 1; aCol < puzzle[aRow].size() - 1; aCol++) {
+      if (puzzle[aRow][aCol] != 'A') {
         continue;
       }
-      // Find all 'M's
-      const auto mPosns = findMatches(Posn(xRow, xCol), 'M');
-      for (const auto& mPosn : mPosns) {
-        int rowOffset = mPosn.row - xRow;
-        int colOffset = mPosn.col - xCol;
-        // Bounds check
-        if ((rowOffset < 0 && xRow < 3) ||
-            (rowOffset > 0 && xRow + 3 >= puzzle.size()) ||
-            (colOffset < 0 && xCol < 3) ||
-            (colOffset > 0 && xCol + 3 >= puzzle[0].size())) {
-          continue;
-        }
-        if (puzzle[xRow + (rowOffset * 2)][xCol + (colOffset * 2)] == 'A' &&
-            puzzle[xRow + (rowOffset * 3)][xCol + (colOffset * 3)] == 'S') {
-                  count++;
-        }
+      const auto ul = puzzle[aRow - 1][aCol - 1];
+      const auto ur = puzzle[aRow - 1][aCol + 1];
+      const auto ll = puzzle[aRow + 1][aCol - 1];
+      const auto lr = puzzle[aRow + 1][aCol + 1];
+
+      const auto isMOrS = [](const char aChar) {
+        return aChar == 'M' || aChar == 'S';
+      };
+      const auto getOpposite = [](const char aChar) {
+        return aChar == 'M' ? 'S' : 'M';
+      };
+
+      if (!isMOrS(ul) || !isMOrS(ur) || !isMOrS(ll) || !isMOrS(lr)) {
+        continue;
       }
+      if (getOpposite(ur) != ll) {
+        continue;
+      }
+      if (getOpposite(ul) != lr) {
+        continue;
+      }
+      count++;
     }
   }
 
