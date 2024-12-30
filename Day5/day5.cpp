@@ -21,8 +21,9 @@ struct Rule {
   int mSecondPage;
 };
 
-static bool isValidOrder(const std::vector<Rule>& rules,
-                         std::ranges::contiguous_range auto& order) {
+static std::optional<std::vector<int>> FixOrderIfInvalid(
+    const std::vector<Rule>& rules, const std::vector<int>& order) {
+  std::cout << std::endl;
   auto applying_rules =
       rules | std::views::transform([&](const Rule& rule) {
         std::pair<std::optional<int>, std::optional<int>> indexes;
@@ -49,9 +50,24 @@ static bool isValidOrder(const std::vector<Rule>& rules,
           [](const std::pair<std::optional<int>, std::optional<int>>& rule) {
             return rule.first.value() > rule.second.value();
           });
-  return std::ranges::fold_left(
-             violating_rules, 0,
-             [](const auto i, const auto&) { return i + 1; }) == 0;
+  std::vector invalidRecords(violating_rules.begin(), violating_rules.end());
+  if (invalidRecords.size() == 0) {
+    return {};
+  }
+  auto mutOrder = order;
+  std::sort(
+      mutOrder.begin(), mutOrder.end(), [&](const int lhs, const int rhs) {
+        const auto rule =
+            std::find_if(rules.begin(), rules.end(), [&](const Rule& aRule) {
+              return (aRule.mFirstPage == lhs || aRule.mSecondPage == lhs) &&
+                     (aRule.mFirstPage == rhs || aRule.mSecondPage == rhs);
+            });
+        if (rule == rules.end()) {
+          return false;
+        }
+        return lhs == rule->mFirstPage;
+      });
+  return mutOrder;
 }
 
 int main() {
@@ -85,11 +101,14 @@ int main() {
   }
 
   auto validOrderMiddles =
-      printOrders | std::ranges::views::filter([&](const auto& aOrder) {
-        return isValidOrder(rules, aOrder);
+      printOrders | std::ranges::views::transform([&](const auto& aOrder) {
+        return FixOrderIfInvalid(rules, aOrder);
       }) |
-      std::ranges::views::transform(
-          [](const auto& aOrder) { return aOrder[aOrder.size() / 2]; });
+      std::ranges::views::filter(
+          [](const auto& aOrder) { return aOrder.has_value(); }) |
+      std::ranges::views::transform([](const auto& aOrder) {
+        return aOrder.value()[aOrder.value().size() / 2];
+      });
 
   const auto answer =
       std::ranges::fold_left(validOrderMiddles, 0, std::plus<int>());
