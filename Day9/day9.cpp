@@ -16,6 +16,14 @@ static const auto FileName = "part1.txt";
 
 static constexpr int EmptySlot = -1;
 
+struct File {
+  File(const int aId, const int aSize) : mId(aId), mSize(aSize) {}
+  File(const int aSize) : mId(EmptySlot), mSize(aSize) {}
+  int mId;
+  int mSize;
+  bool IsFreeSpace() const { return mId == EmptySlot; }
+};
+
 int convertCharToInt(const char letter) {
   switch (letter) {
     case '9':
@@ -52,23 +60,32 @@ int convertCharToInt(const char letter) {
   }
 }
 
-[[maybe_unused]] static void printDisk(const std::vector<int>& disk) {
-  for (const auto item : disk) {
-    if (item == EmptySlot) {
-      std::cout << '.';
+[[maybe_unused]] static void printDisk(const std::vector<File>& disk) {
+  for (const auto& item : disk) {
+    if (item.IsFreeSpace()) {
+      for (int i = 0; i < item.mSize; i++) {
+        std::cout << '.';
+      }
     } else {
-      std::cout << item;
+      for (int i = 0; i < item.mSize; i++) {
+        std::cout << item.mId;
+      }
     }
   }
   std::cout << std::endl;
 }
 
-static uint64_t calcChecksum(const std::vector<int>& disk) {
+static uint64_t calcChecksum(const std::vector<File>& disk) {
+  uint64_t position = 0;
   uint64_t checksum = 0;
-  for (size_t i = 0; i < disk.size(); i++) {
-    const auto fileId = disk[i];
-    if (fileId != EmptySlot) {
-      checksum += (fileId * i);
+  for (const auto& item : disk) {
+    const auto positionAfter = position + item.mSize;
+    if (item.IsFreeSpace()) {
+      position = positionAfter;
+      continue;
+    }
+    for (; position < positionAfter; position++) {
+      checksum += (position * item.mId);
     }
   }
   return checksum;
@@ -77,54 +94,54 @@ static uint64_t calcChecksum(const std::vector<int>& disk) {
 int main() {
   std::ifstream inputFile(FileName);
   int fileId = 0;
-  std::vector<int> disk;
-  const auto addFile = [&](const int aFileId, const int fileSize) {
-    for (int i = 0; i < fileSize; i++) {
-      disk.emplace_back(aFileId);
-    }
-  };
+  std::vector<File> disk;
 
   while (inputFile.good()) {
     char temp;
     inputFile >> temp;
     const auto fileSize = convertCharToInt(temp);
-    addFile(fileId, fileSize);
+    disk.emplace_back(fileId, fileSize);
 
     fileId++;
     inputFile >> temp;
     const auto emptySize = convertCharToInt(temp);
-    addFile(EmptySlot, emptySize);
+    if (emptySize > 0) {
+      disk.emplace_back(emptySize);
+    }
   }
 
-  auto endIter = disk.end();
-  for (endIter--; *endIter == EmptySlot && endIter != disk.begin(); endIter--) {
+  if (disk.back().IsFreeSpace()) {
+    disk.pop_back();
   }
-  disk.erase(endIter + 1, disk.end());
 
-  // printDisk(disk);
+  printDisk(disk);
 
-  const auto isDiskCompact = [&]() {
-    const auto firstEmpty = std::find(disk.begin(), disk.end(), EmptySlot);
-    return std::none_of(firstEmpty, disk.end(),
-                        [](const auto item) { return item != EmptySlot; });
-  };
-
-  for (size_t backPosn = disk.size() - 1; backPosn > 0 && !isDiskCompact();
-       backPosn--) {
-    const auto moveFileId = disk[backPosn];
-    if (moveFileId == EmptySlot) {
+  for (size_t backPosn = disk.size() - 1; backPosn > 0; backPosn--) {
+    if (disk[backPosn].IsFreeSpace()) {
       continue;
     }
-    const auto nextPosn = std::find(disk.begin(), disk.end(), EmptySlot);
-    if (nextPosn == disk.end()) {
-      throw std::logic_error("Somehow didn't find empty");
+
+    const auto searchEnd = disk.begin() + backPosn;
+    const auto insertLoc =
+        std::find_if(disk.begin(), disk.begin() + backPosn,
+                     [neededSize = disk[backPosn].mSize](const File& aFile) {
+                       return aFile.IsFreeSpace() && aFile.mSize >= neededSize;
+                     });
+    if (insertLoc != searchEnd) {
+      const auto fId = disk[backPosn].mId;
+      const auto extraSize = insertLoc->mSize - disk[backPosn].mSize;
+      disk[backPosn].mId = EmptySlot;
+      insertLoc->mSize -= extraSize;
+      insertLoc->mId = fId;
+      if ((insertLoc + 1)->IsFreeSpace()) {
+        (insertLoc + 1)->mSize += extraSize;
+      } else {
+        disk.insert(insertLoc + 1, File(extraSize));
+        backPosn++;
+      }
     }
-    *nextPosn = moveFileId;
-    disk[backPosn] = EmptySlot;
   }
-
-  // printDisk(disk);
-
+  printDisk(disk);
   const auto answer = calcChecksum(disk);
   std::cout << "Answer: " << answer << std::endl;
 }
