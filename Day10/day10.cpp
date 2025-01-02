@@ -50,13 +50,10 @@ int convertCharToInt(const char letter) {
   }
 }
 
-using PosnPair = std::pair<size_t, size_t>;
-
 struct Posn {
   Posn(size_t aRow, size_t aCol) : mRow(aRow), mCol(aCol) {}
   size_t mRow;
   size_t mCol;
-  PosnPair ToPosnPair() const { return PosnPair(mRow, mCol); }
 };
 
 using Puzzle = std::vector<std::string>;
@@ -86,8 +83,7 @@ static std::vector<Posn> findNextPossiblePaths(const Puzzle& aPuzzle,
   return nextPositions;
 }
 
-static std::set<PosnPair> getSummits(const Puzzle& aPuzzle,
-                                     const Posn& aCurrentPosition) {
+static int getSummits(const Puzzle& aPuzzle, const Posn& aCurrentPosition) {
   const auto locationElevation =
       aPuzzle[aCurrentPosition.mRow][aCurrentPosition.mCol];
   // std::cout << "Doing at (" << aCurrentPosition.mRow << ','
@@ -95,18 +91,17 @@ static std::set<PosnPair> getSummits(const Puzzle& aPuzzle,
   //           << std::endl;
   if (locationElevation == '9') {
     // std::cout << "Found" << std::endl;
-    return {aCurrentPosition.ToPosnPair()};
+    return 1;
   }
   const auto next = findNextPossiblePaths(aPuzzle, aCurrentPosition);
   if (next.size() == 0) {
-    return {};
+    return 0;
   }
-  std::set<PosnPair> values;
+  int value = 0;
   for (const auto& nextPos : next) {
-    const auto value = getSummits(aPuzzle, nextPos);
-    values.insert(value.begin(), value.end());
+    value += getSummits(aPuzzle, nextPos);
   }
-  return values;
+  return value;
 }
 
 int main() {
@@ -124,7 +119,7 @@ int main() {
       if (col != '0') {
         continue;
       }
-      const auto temp = getSummits(puzzle, Posn(rowIndex, colIndex)).size();
+      const auto temp = getSummits(puzzle, Posn(rowIndex, colIndex));
       std::cout << "Done with at (" << rowIndex << ',' << colIndex
                 << ") result=" << temp << std::endl;
       answer += temp;
